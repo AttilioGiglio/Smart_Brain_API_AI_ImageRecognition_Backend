@@ -1,9 +1,12 @@
 const express = require('express');
-const bodyParser = require('body-parser'); 
+const bodyParser = require('body-parser');
+const bcrypt = require('bcrypt-nodejs');
+const cors = require('cors');
 
 const app = express();
 
-app.use(bodyParser.json())
+app.use(bodyParser.json());
+app.use(cors())
 
 const dataBase = {
     users: [
@@ -26,9 +29,9 @@ const dataBase = {
     ],
     login: [
         {
-            id:'987',
-            hash:'',
-            email:'john@gmail.com'
+            id: '987',
+            hash: '',
+            email: 'john@gmail.com'
         }
     ]
 }
@@ -38,6 +41,12 @@ app.get('/', (req, res) => {
 })
 
 app.post('/signin', (req, res) => {
+    bcrypt.compare("chucha", '$2a$10$h6yIBQ8Jlq6MIAJFQv6eRe2XmQGRMM4PV.lvoIcSwME0u/oJaAaIC', function (err, res) {
+       console.log('first guess', res)
+    });
+    bcrypt.compare("veggies", '$2a$10$h6yIBQ8Jlq6MIAJFQv6eRe2XmQGRMM4PV.lvoIcSwME0u/oJaAaIC', function (err, res) {
+        console.log('second guess', res)
+    });
     if (req.body.email === dataBase.users[0].email && req.body.password === dataBase.users[0].password) {
         res.json('sucess')
     } else {
@@ -45,45 +54,49 @@ app.post('/signin', (req, res) => {
     }
 })
 
-app.post('/register', (req,res) => {
-    const {email, name, password} = req.body;
+app.post('/register', (req, res) => {
+    const { email, name, password } = req.body;
+    bcrypt.hash(password, null, null, function (err, hash) {
+        // Store hash in your password DB.
+        console.log(hash);
+    });
     dataBase.users.push({
-        id:'125',
-        name:name,
-        email:email,
-        password:password,
-        entries:0,
+        id: '125',
+        name: name,
+        email: email,
+        password: password,
+        entries: 0,
         joined: new Date()
     })
-    res.json(dataBase.users[dataBase.users.length-1])
+    res.json(dataBase.users[dataBase.users.length - 1])
 })
 
-app.get('/profile/:id',(req,res) => {
-    const {id} = req.params;
+app.get('/profile/:id', (req, res) => {
+    const { id } = req.params;
     let found = false;
     dataBase.users.forEach(user => {
-        if(user.id === id){
+        if (user.id === id) {
             found = true;
             return res.json(user);
         }
     })
-    if(!found){
+    if (!found) {
 
-            res.status(404).json('no such user')
-        }
+        res.status(404).json('no such user')
+    }
 })
 
-app.put('/image', (req,res) =>{
-    const {id} = req.body;
+app.put('/image', (req, res) => {
+    const { id } = req.body;
     let found = false;
     dataBase.users.forEach(user => {
-        if(user.id === id){
+        if (user.id === id) {
             found = true;
             user.entries++
             return res.json(user.entries);
         }
     })
-    if(!found){
+    if (!found) {
         res.status(404).json('no such user');
     }
 })
