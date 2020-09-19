@@ -1,38 +1,94 @@
 const express = require('express');
+const bodyParser = require('body-parser'); 
 
 const app = express();
+
+app.use(bodyParser.json())
 
 const dataBase = {
     users: [
         {
-            is:'123',
-            name:'John',
+            id: '123',
+            name: 'John',
             email: 'john@gmail.com',
             password: 'cookies',
-            entries:0,
+            entries: 0,
+            joined: new Date()
+        },
+        {
+            id: '124',
+            name: 'John',
+            email: 'john@gmail.com',
+            password: 'bananas',
+            entries: 0,
             joined: new Date()
         }
     ]
 }
 
 app.get('/', (req, res) => {
-    res.send('this is working')
+    res.send(dataBase.users)
 })
 
 app.post('/signin', (req, res) => {
-    res.send('signing')
+    if (req.body.email === dataBase.users[0].email && req.body.password === dataBase.users[0].password) {
+        res.json('sucess')
+    } else {
+        res.status(400).json('error logging in')
+    }
 })
 
-
-app.listen(4000, ()=>{
-    console.log('app is runnning on port 4000')
+app.post('/register', (req,res) => {
+    const {email, name, password} = req.body;
+    dataBase.users.push({
+        id:'125',
+        name:name,
+        email:email,
+        password:password,
+        entries:0,
+        joined: new Date()
+    })
+    res.json(dataBase.users[dataBase.users.length-1])
 })
 
-/*  
+app.get('/profile/:id',(req,res) => {
+    const {id} = req.params;
+    const found = false;
+    dataBase.users.forEach(user => {
+        if(user.id === id){
+            found: true
+            return res.json(user);
+        }
+    })
+    if(!found){
+
+            res.status(404).json('no such user')
+        }
+})
+
+app.post('/image', (req,res) =>{
+    const {id} = req.params;
+    const found = false;
+    dataBase.users.forEach(user => {
+        if(user.id === id){
+            found: true
+            user.entries++
+            return res.json(user.entries);
+        }
+    })
+    if(!found){
+
+        res.status(404).json('no such user')
+    }
+})
+
+app.listen(4000)
+
+/*
 --> res = this is working
     /signin --> POST = success/fail
-    /register --> POST = new user 
+    /register --> POST = new user
     /profile/:userID --> GET = user
     /image --> PUT --> user
 
-*/ 
+*/
