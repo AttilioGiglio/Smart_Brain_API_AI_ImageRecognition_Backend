@@ -48,7 +48,7 @@ app.post('/signin', (req, res) => {
         console.log('second guess', res)
     });
     if (req.body.email === dataBase.users[0].email && req.body.password === dataBase.users[0].password) {
-        res.json('sucess')
+        res.json(dataBase.users[0])
     } else {
         res.status(400).json('error logging in')
     }
