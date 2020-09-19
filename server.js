@@ -23,6 +23,13 @@ const dataBase = {
             entries: 0,
             joined: new Date()
         }
+    ],
+    login: [
+        {
+            id:'987',
+            hash:'',
+            email:'john@gmail.com'
+        }
     ]
 }
 
@@ -53,10 +60,10 @@ app.post('/register', (req,res) => {
 
 app.get('/profile/:id',(req,res) => {
     const {id} = req.params;
-    const found = false;
+    let found = false;
     dataBase.users.forEach(user => {
         if(user.id === id){
-            found: true
+            found = true;
             return res.json(user);
         }
     })
@@ -66,19 +73,18 @@ app.get('/profile/:id',(req,res) => {
         }
 })
 
-app.post('/image', (req,res) =>{
-    const {id} = req.params;
-    const found = false;
+app.put('/image', (req,res) =>{
+    const {id} = req.body;
+    let found = false;
     dataBase.users.forEach(user => {
         if(user.id === id){
-            found: true
+            found = true;
             user.entries++
             return res.json(user.entries);
         }
     })
     if(!found){
-
-        res.status(404).json('no such user')
+        res.status(404).json('no such user');
     }
 })
 
