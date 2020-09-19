@@ -64,7 +64,7 @@ app.post('/register', (req, res) => {
         id: '125',
         name: name,
         email: email,
-        password: password,
+        // password: password, you don't want to send the password
         entries: 0,
         joined: new Date()
     })
