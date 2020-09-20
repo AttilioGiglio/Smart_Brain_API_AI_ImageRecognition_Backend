@@ -4,17 +4,20 @@ const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
 const knex = require('knex');
 
-const postgres = knex({
+const db = knex({
     client: 'pg',
-    connection: {
-      host : '127.0.0.1',
-      user : 'attilio',
-      password : '',
-      database : 'smart-brain'
-    }
+        connection: {
+          host : '127.0.0.1', //localhost
+          user : 'postgres',
+          password : 'postgres',
+          database : 'smart-brain'
+        },
+        pool : {min:2, max:8}
   });
 
-console.log(postgres.select('*').from('users')); 
+// db.select('*').from('users').then(data => {
+//     console.log(data)  /* --> this log giveme the password error :( */
+// });
 
 const app = express();
 
@@ -73,14 +76,11 @@ app.post('/register', (req, res) => {
         // Store hash in your password DB.
         console.log(hash);
     });
-    dataBase.users.push({
-        id: '125',
-        name: name,
-        email: email,
-        // password: password, you don't want to send the password
-        entries: 0,
+    db('users').insert({
+        email:email,
+        name:name,
         joined: new Date()
-    })
+    }).then(console.log)
     res.json(dataBase.users[dataBase.users.length - 1])
 })
 
