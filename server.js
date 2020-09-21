@@ -70,34 +70,51 @@ app.post('/signin', (req, res) => {
 })
 
 app.post('/register', (req, res) => {
-    const { email, name } = req.body;
+    const { email, name, password } = req.body;
     // bcrypt.hash(password, null, null, function (err, hash) {
     //     // Store hash in your password DB.
     //     console.log(hash);
-    // });
-    db('users').returning('*').insert({
-        email: email,
-        name: name,
-        joined: new Date()
-    }).then(user => {
-        res.json(user[0])
-        // dataBase.users[dataBase.users.length-1], instead of .returning('*').. reserver word from knex
-    }).catch(err => res.status(400).json('unable to register'))
+    // }); Asyncronous way from npm bcrypt-nodejs documentation 
+    const hash = bcrypt.hashSync(password); /*Sync way "" */
+    db.transaction(trx => {
+        trx.insert({
+            hash: hash,
+            email: email
+        })
+        .into('login')
+        .returning('email')
+        .then(loginEmail => {
+            return trx('users')
+            .returning('*')
+            .insert({
+                email: loginEmail,
+                name: name,
+                joined: new Date()
+            })
+            .then(user => {
+                res.json(user[0]);
+                // dataBase.users[dataBase.users.length-1], instead of .returning('*').. reserver word from knex
+            })
+        })
+        .then(trx.commit)
+        .catch(trx.rollback);
+    })
+    .catch(err => res.status(400).json('unable to register'))
     // res.json(dataBase.users[dataBase.users.length - 1])
 })
 
 app.get('/profile/:id', (req, res) => {
     const { id } = req.params;
     // let found = false;
-    db.select('*').from('users').where({ id:id })
-    .then(user => {
-        if(user.length){
-            res.json(user[0])
-        }
-        else{
-            res.status(400).json('not found')
-        }
-    }).catch(err => res.status(400).json('error getting user'))
+    db.select('*').from('users').where({ id: id })
+        .then(user => {
+            if (user.length) {
+                res.json(user[0])
+            }
+            else {
+                res.status(400).json('not found')
+            }
+        }).catch(err => res.status(400).json('error getting user'))
     // dataBase.users.forEach(user => {
     //     if (user.id === id) {
     //         found = true;
@@ -112,17 +129,23 @@ app.get('/profile/:id', (req, res) => {
 
 app.put('/image', (req, res) => {
     const { id } = req.body;
-    let found = false;
-    dataBase.users.forEach(user => {
-        if (user.id === id) {
-            found = true;
-            user.entries++
-            return res.json(user.entries);
-        }
-    })
-    if (!found) {
-        res.status(404).json('no such user');
-    }
+    // let found = false;
+    // dataBase.users.forEach(user => {
+    //     if (user.id === id) {
+    //         found = true;
+    //         user.entries++
+    //         return res.json(user.entries);
+    //     }
+    // })
+    // if (!found) {
+    //     res.status(404).json('no such user');
+    // }
+    db('users').where('id', '=', id)
+        .increment('entries', 1)
+        .returning('entries')
+        .then(entries => {
+            res.json(entries[0])
+        }).catch(err => res.status(400).json('unable to get entries'))
 })
 
 app.listen(4000)
