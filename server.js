@@ -11,8 +11,7 @@ const db = knex({
           user : 'postgres',
           password : 'postgres',
           database : 'smart-brain'
-        },
-        pool : {min:2, max:8}
+        }
   });
 
 // db.select('*').from('users').then(data => {
@@ -71,17 +70,20 @@ app.post('/signin', (req, res) => {
 })
 
 app.post('/register', (req, res) => {
-    const { email, name, password } = req.body;
-    bcrypt.hash(password, null, null, function (err, hash) {
-        // Store hash in your password DB.
-        console.log(hash);
-    });
-    db('users').insert({
+    const { email, name } = req.body;
+    // bcrypt.hash(password, null, null, function (err, hash) {
+    //     // Store hash in your password DB.
+    //     console.log(hash);
+    // });
+    db('users').returning('*').insert({
         email:email,
         name:name,
         joined: new Date()
-    }).then(console.log)
-    res.json(dataBase.users[dataBase.users.length - 1])
+    }).then(user => {
+        res.json(user[0])
+        // dataBase.users[dataBase.users.length-1], instead of .returning('*').. reserver word from knex
+    }).catch(err =>res.status(400).json('unable to register'))
+    // res.json(dataBase.users[dataBase.users.length - 1])
 })
 
 app.get('/profile/:id', (req, res) => {
