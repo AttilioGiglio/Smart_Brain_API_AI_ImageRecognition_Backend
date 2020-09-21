@@ -20,33 +20,33 @@ const db = knex({
 
 const app = express();
 
-const dataBase = {
-    users: [
-        {
-            id: '123',
-            name: 'John',
-            email: 'john@gmail.com',
-            password: 'cookies',
-            entries: 0,
-            joined: new Date()
-        },
-        {
-            id: '124',
-            name: 'John',
-            email: 'john@gmail.com',
-            password: 'bananas',
-            entries: 0,
-            joined: new Date()
-        }
-    ],
-    login: [
-        {
-            id: '987',
-            hash: '',
-            email: 'john@gmail.com'
-        }
-    ]
-}
+// const dataBase = {
+//     users: [
+//         {
+//             id: '123',
+//             name: 'John',
+//             email: 'john@gmail.com',
+//             password: 'cookies',
+//             entries: 0,
+//             joined: new Date()
+//         },
+//         {
+//             id: '124',
+//             name: 'John',
+//             email: 'john@gmail.com',
+//             password: 'bananas',
+//             entries: 0,
+//             joined: new Date()
+//         }
+//     ],
+//     login: [
+//         {
+//             id: '987',
+//             hash: '',
+//             email: 'john@gmail.com'
+//         }
+//     ]
+// }
 
 app.use(bodyParser.json());
 app.use(cors())
@@ -56,17 +56,33 @@ app.get('/', (req, res) => {
 })
 
 app.post('/signin', (req, res) => {
-    bcrypt.compare("chucha", '$2a$10$h6yIBQ8Jlq6MIAJFQv6eRe2XmQGRMM4PV.lvoIcSwME0u/oJaAaIC', function (err, res) {
-        console.log('first guess', res)
-    });
-    bcrypt.compare("veggies", '$2a$10$h6yIBQ8Jlq6MIAJFQv6eRe2XmQGRMM4PV.lvoIcSwME0u/oJaAaIC', function (err, res) {
-        console.log('second guess', res)
-    });
-    if (req.body.email === dataBase.users[0].email && req.body.password === dataBase.users[0].password) {
-        res.json(dataBase.users[0])
-    } else {
-        res.status(400).json('error logging in')
-    }
+    db.select('email', 'hash').from('login')
+    .where("email", "=", req.body.email)
+    .then(data => {
+       const isValid = bcrypt.compareSync(req.body.password, data[0].hash);
+        if(isValid){
+            return db.select('*').from('users')
+            .where("email", "=", req.body.email)
+            .then(user =>{
+                res.json(user[0])
+            })
+            .catch(err => res.status(400).json('enable to get user'))
+        }else{
+            res.status(400).json('wrong credentials')
+        }
+    })
+   
+    // bcrypt.compare("chucha", '$2a$10$h6yIBQ8Jlq6MIAJFQv6eRe2XmQGRMM4PV.lvoIcSwME0u/oJaAaIC', function (err, res) {
+    //     console.log('first guess', res)
+    // });
+    // bcrypt.compare("veggies", '$2a$10$h6yIBQ8Jlq6MIAJFQv6eRe2XmQGRMM4PV.lvoIcSwME0u/oJaAaIC', function (err, res) {
+    //     console.log('second guess', res)
+    // });
+    // if (req.body.email === dataBase.users[0].email && req.body.password === dataBase.users[0].password) {
+    //     res.json(dataBase.users[0])
+    // } else {
+    //     res.status(400).json('error logging in')
+    // } 
 })
 
 app.post('/register', (req, res) => {
