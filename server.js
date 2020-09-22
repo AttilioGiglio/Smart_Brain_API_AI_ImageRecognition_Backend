@@ -3,10 +3,10 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
 const knex = require('knex');
-const register = require('./c1/register');
-const signin = require('./c1/signin');
-const profile = require('./c1/profile');
-const image = require('./c1/image');
+const register = require('./controllers/register');
+const signin = require('./controllers/signin');
+const profile = require('./controllers/profile');
+const image = require('./controllers/image');
 
 const db = knex({
     client: 'pg',
